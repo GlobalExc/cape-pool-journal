@@ -1,0 +1,14 @@
+[build]
+  command = "pip install -r requirements.txt && python3 build.py"
+  publish = "public"
+
+[build.environment]
+  PYTHON_VERSION = "3.11"
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/favicon.svg"
+  to = "/brand/mark.svg"
+  status = 301
