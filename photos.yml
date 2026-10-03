@@ -1,0 +1,23 @@
+# Free photos from Unsplash (unsplash.com/license). Credit shown under each photo.
+# A post's own "image" (a real job photo uploaded in /admin) always takes priority.
+posts:
+  pool-summer-ready-cape-town: [photo-1564013799919-ab600027ffc6, Wes Fischer, g39p1kDjvSY, "A garden pool beside a white house on a sunny day"]
+  why-is-my-pool-green: [photo-1617121062439-0a9a1f41f080, Yohan Marion, F2h96GNR8AY, "Green algae spreading across the surface of water"]
+  pool-chemical-levels-chart: [photo-1532094349884-543bc11b234d, Hans Reniers, lQGJCMY5qcM, "Laboratory glassware used for water testing"]
+  how-often-pool-service-cape-town: [photo-1605702755163-4f303492e55f, Iosi Pratama, IEvt175Ndwo, "A pool technician cleaning a pool with a long pole"]
+  pool-games-family-activities: [photo-1689326561417-78ad743ff4e2, Warren Umoh, Me7y3DYfIBE, "Colourful inflatable letters spelling summer floating in a pool"]
+  how-to-vacuum-a-pool: [photo-1742353980377-b8e42932c590, Zhiqiang Wang, uWB32BEOnuw, "A pool cleaner working on the floor of a clear pool"]
+  cloudy-pool-water: [photo-1621685474063-40b5904d330c, Jo Szczepanska, Zo6KoEAVF_k, "Rippled pale blue pool water"]
+  pool-safety-for-kids: [photo-1779767230285-f82cdbcaaf94, dav other, qQJE7MrqvKU, "A fenced swimming pool at a family home"]
+  how-long-to-run-pool-pump: [photo-1714203172156-4c2f8c767a37, Bernd Dittrich, XvKkDw_1zuo, "Overhead view of a pool with a wooden deck"]
+  pool-pump-load-shedding: [photo-1719935114301-eac84a6591cf, Alice Kotlyarenko, n4sjEVninD4, "A candle lighting a dark room during a power cut"]
+  salt-chlorinator-vs-chlorine: [photo-1763974463967-647601c65961, Kamakshi subramani, 4LIq0p11QgU, "Salt crystals on spoons"]
+  fibreglass-vs-concrete-pool: [photo-1749224725848-a450483cd75d, Tropical Escapes, cvcS_Wy8kaY, "A newly finished pool with paved surrounds"]
+  cost-to-build-pool-cape-town: [photo-1610164989165-0c4701bc4ce2, THE JD Darshan Solanki, fPySdxQ1kFg, "A construction site with reinforcing steel laid out"]
+  pool-stains-removal: [photo-1644056368311-c8054df845d0, David Pisnoy, xVPWv8VVxYY, "Blue mosaic pool tiles"]
+  pool-party-checklist: [photo-1466378284817-a6b7fd50cc68, Jakob Owens, cL1m55GcwXE, "Friends jumping into a pool at a summer party"]
+  pool-evaporation-south-easter: [photo-1604075903199-a78a45751d53, Phil Hearing, 2wOmbsC66Xk, "Wind-swept dunes and grass on a beach"]
+site:
+  home: [photo-1706164971299-cfa23ec76083, Salman Saqib, F1q1V0TOuYE, "A modern house with a pool in the garden"]
+  capetown: [photo-1626894169601-482d26b23f35, Peter Burdon, F1po0flco3k, "Table Mountain above the Cape Town city bowl"]
+  blouberg: [photo-1604763655221-b98ebdac6ddf, Roberto Huczek, CSL4cuE4xLA, "Table Mountain seen across the bay"]

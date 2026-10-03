@@ -118,10 +118,63 @@ def cover_svg(pillar, seed):
             f'<rect width="1200" height="675" fill="url(#g{h % 9999})"/>{motif}{waves}</svg>')
 
 
-def cover_html(p, eager=False):
+# ----------------------------------------------------------------- PHOTOS
+PHOTOS = yaml.safe_load(open(os.path.join(ROOT, "photos.yml"), encoding="utf-8"))
+PILLAR_PHOTO = {"Care": "how-often-pool-service-cape-town", "Problems": "why-is-my-pool-green", "Seasons": "pool-evaporation-south-easter",
+                "Building": "fibreglass-vs-concrete-pool", "Activities": "pool-games-family-activities"}
+SEASONS = {  # month: (kicker, heading, text, post slug)
+    9: ("September in Cape Town", "Spring clean before the heat arrives.", "Winter rain has diluted everything. A clean-up now means a clear pool in December.", "pool-summer-ready-cape-town"),
+    10: ("October in Cape Town", "Spring clean before the heat arrives.", "Winter rain has diluted everything. A clean-up now means a clear pool in December.", "pool-summer-ready-cape-town"),
+    11: ("November in Cape Town", "The south-easter is back.", "Expect sand in the baskets, faster evaporation and chlorine that disappears overnight.", "pool-evaporation-south-easter"),
+    12: ("December in Cape Town", "Peak season. Keep the chlorine up.", "Heat, holidays and busy pools use chlorine faster than any other month.", "pool-party-checklist"),
+    1: ("January in Cape Town", "Hot, dry and windy.", "Top up responsibly and check chlorine after every heatwave.", "pool-evaporation-south-easter"),
+    2: ("February in Cape Town", "Late-summer heat waves.", "Green pools appear overnight in February. Here's how to stay ahead.", "why-is-my-pool-green"),
+}
+
+
+def photo_for(p):
+    """(src_function, alt, credit_html) for a post: uploaded job photo first, else Unsplash, else None."""
     if p.get("image"):
-        return f'<img src="/img/{esc(p["image"])}" alt="{esc(p.get("image_alt") or p["title"])}" loading="{"eager" if eager else "lazy"}" width="1200" height="675">'
+        src = "/img/" + p["image"]
+        return (lambda w: src), p.get("image_alt") or p["title"], ""
+    rec = PHOTOS["posts"].get(p["slug"])
+    if rec:
+        return unsplash(rec)
+    return None
+
+
+def unsplash(rec):
+    pid, who, page_id, alt = rec
+    src = lambda w: f"https://images.unsplash.com/{pid}?auto=format&fit=crop&w={w}&q=72"
+    credit = (f'Photo: <a href="https://unsplash.com/photos/{page_id}?utm_source=cape_pool_journal&utm_medium=referral" rel="noopener">{esc(who)}</a>'
+              f' / <a href="https://unsplash.com/?utm_source=cape_pool_journal&utm_medium=referral" rel="noopener">Unsplash</a>')
+    return src, alt, credit
+
+
+def img_tag(ph, sizes="100vw", eager=False, widths=(480, 800, 1200, 1800)):
+    src, alt, _ = ph
+    srcset = ", ".join(f"{src(w)} {w}w" for w in widths)
+    return (f'<img src="{src(widths[-2])}" srcset="{srcset}" sizes="{sizes}" alt="{esc(alt)}" '
+            f'loading="{"eager" if eager else "lazy"}" decoding="async" width="1200" height="800"{" fetchpriority=high" if eager else ""}>')
+
+
+def cover_html(p, eager=False, sizes="(max-width:640px) 100vw, 33vw"):
+    ph = photo_for(p)
+    if ph:
+        return img_tag(ph, sizes, eager)
     return f'<img src="/covers/{p["slug"]}.svg" alt="" loading="{"eager" if eager else "lazy"}" width="1200" height="675">'
+
+
+def cover_url(p):
+    ph = photo_for(p)
+    if ph:
+        u = ph[0](1200)
+        return u if u.startswith("http") else SITE_URL + u
+    return f"{SITE_URL}/covers/{p['slug']}.svg"
+
+
+def site_photo(key):
+    return unsplash(PHOTOS["site"][key])
 
 
 # ----------------------------------------------------------------- ADS
@@ -194,9 +247,12 @@ def page(title, description, path, body, jsonld=None, og_type="website", active=
         cookie = ('<div class="cookie" role="region" aria-label="Cookie notice"><p>We use cookies for ads and to understand what readers find useful. '
                   '<a href="/privacy/">Privacy policy</a></p><button class="btn" type="button">OK</button></div>')
     footer_topics = "".join(f'<li><a href="/topics/{s}/">{n}</a></li>' for n, (s, _, _) in PILLARS.items())
-    og_img = f'<meta property="og:image" content="{SITE_URL}{og_image or "/brand/og-default.png"}"><meta property="og:image:alt" content="{esc(title)}">'
+    og = og_image or "/brand/og-default.png"
+    og = og if og.startswith("http") else SITE_URL + og
+    og_img = f'<meta property="og:image" content="{og}"><meta property="og:image:alt" content="{esc(title)}">'
     verify = (f'<meta name="google-site-verification" content="{GSC_VERIFICATION}">' if GSC_VERIFICATION else "") + \
              (f'<meta name="msvalidate.01" content="{BING_VERIFICATION}">' if BING_VERIFICATION else "")
+    today = TODAY.strftime("%A, %-d %B %Y")
     return f"""<!doctype html>
 <html lang="en-ZA">
 <head>
@@ -209,31 +265,34 @@ def page(title, description, path, body, jsonld=None, og_type="website", active=
 <meta property="og:description" content="{esc(description)}"><meta property="og:url" content="{canonical}">
 <meta property="og:site_name" content="{SITE_NAME}"><meta property="og:locale" content="en_ZA">{og_img}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#082231">{verify}
+<meta name="theme-color" content="#f7f3ec">{verify}
 <link rel="icon" href="/favicon.ico" sizes="32x32"><link rel="icon" href="/brand/mark.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="{SITE_NAME}" href="/feed.xml">
+<link rel="preconnect" href="https://images.unsplash.com">
 <link rel="preload" href="/fonts/fraunces-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/newsreader-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css?v={ASSET_VER}">
 {head_scripts()}{ld}
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
+<div class="topbar"><div class="wrap"><span>{today} <span class="tag-line">· Cape Town, South Africa</span></span><a href="{WHATSAPP}">Pool trouble? WhatsApp {PHONE_DISPLAY}</a></div></div>
 <header class="site"><div class="wrap">
-<a class="brand" href="/" aria-label="{SITE_NAME} home">{logo_img()}</a>
+<a class="brand" href="/" aria-label="{SITE_NAME} home">{logo_img(white=False)}</a>
 <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 <nav class="main" aria-label="Main">{nav_html(active)}</nav>
-<a class="btn hbtn" href="{BIZ_URL}" rel="noopener">Book a service</a>
+<a class="btn dark hbtn" href="{BIZ_URL}" rel="noopener">Book a service</a>
 </div>{'<div class="progress"></div>' if progress else ''}</header>
 <main id="content">{body}</main>
 <footer class="site"><div class="wrap">
 <div class="cols">
-<div><strong>{SITE_NAME}</strong>{TAGLINE}. Written by the team at <a href="{BIZ_URL}">{BIZ_NAME}</a>, who look after pools across Cape Town every week.</div>
+<div class="about">{logo_img(white=True)}<p>{TAGLINE}. Written by the team at {BIZ_NAME}, who look after pools across Cape Town every week.</p></div>
 <div><strong>Topics</strong><ul>{footer_topics}</ul></div>
-<div><strong>Journal</strong><ul><li><a href="/about/">About</a></li><li><a href="/contact/">Contact &amp; questions</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms &amp; disclaimer</a></li><li><a href="/feed.xml">RSS feed</a></li></ul></div>
+<div><strong>The Journal</strong><ul><li><a href="/about/">About</a></li><li><a href="/contact/">Ask a question</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms &amp; disclaimer</a></li><li><a href="/feed.xml">RSS feed</a></li></ul></div>
 <div><strong>Need a pool pro?</strong><ul><li><a href="{WHATSAPP}">WhatsApp {PHONE_DISPLAY}</a></li><li><a href="{BIZ_URL}">{BIZ_NAME}</a></li><li>{HOURS}</li></ul></div>
 </div>
-<div class="legal"><span>© {date.today().year} {BIZ_NAME}. All rights reserved.</span><span>Advice is general. Always follow chemical product labels.</span></div>
+<div class="legal"><span>© {date.today().year} {BIZ_NAME}. All rights reserved.</span><span>Advice is general. Always follow chemical product labels. Photos credited where used.</span></div>
 </div></footer>
 {cookie}
 <script src="/site.js?v={ASSET_VER}" defer></script>
@@ -242,11 +301,13 @@ def page(title, description, path, body, jsonld=None, og_type="website", active=
 
 
 def cta_box():
-    return f"""<aside class="cta">
+    ph = site_photo("capetown")
+    return f"""<aside class="cta"><div class="bg">{img_tag(ph, "700px", widths=(480, 800, 1200, 1600))}</div><div class="in">
+<span class="kicker">From the team behind the journal</span>
 <h2>Rather swim than scrub?</h2>
 <p>{BIZ_NAME} keeps Cape Town pools clear all year with weekly services, green-pool rescues and spring clean-ups.</p>
 <div class="actions"><a class="btn light" href="{BIZ_URL}">See service plans</a><a class="btn ghost" href="{WHATSAPP}">WhatsApp {PHONE_DISPLAY}</a></div>
-<small>{HOURS}</small></aside>"""
+<small>{HOURS}</small></div></aside>"""
 
 
 def org_ld():
@@ -304,11 +365,16 @@ def load_posts():
     return posts
 
 
-def card(p):
-    slug = PILLARS[p["pillar"]][0]
+def card(p, sizes="(max-width:640px) 100vw, (max-width:900px) 50vw, 380px"):
     search = esc(f"{p['title']} {p['description']} {p['pillar']}".lower())
-    return f"""<a class="card" href="/{p['slug']}/" data-search="{search}"><div class="cover">{cover_html(p)}</div><div class="body"><span class="tag {slug}">{p['pillar']}</span>
-<h3>{esc(p['title'])}</h3><p>{esc(p['description'])}</p><span class="meta">{p['read']} read · {fmt_date(p['updated'])}</span></div></a>"""
+    return f"""<a class="story" href="/{p['slug']}/" data-search="{search}"><div class="ph">{cover_html(p, sizes=sizes)}</div>
+<span class="kicker">{p['pillar']}</span><h3>{esc(p['title'])}</h3><p>{esc(p['description'])}</p><span class="meta">{fmt_date(p['updated'])} · {p['read']} read</span></a>"""
+
+
+def lead_story(p):
+    search = esc(f"{p['title']} {p['description']} {p['pillar']}".lower())
+    return f"""<a class="lead-story" href="/{p['slug']}/" data-search="{search}"><div class="ph">{cover_html(p, sizes="(max-width:900px) 100vw, 680px")}</div>
+<div><span class="kicker">Latest · {p['pillar']}</span><h3>{esc(p['title'])}</h3><p>{esc(p['answer'])}</p><span class="meta">By {AUTHOR} · {fmt_date(p['updated'])} · {p['read']} read</span></div></a>"""
 
 
 def toc_list(p):
@@ -322,39 +388,43 @@ def build_post(p, posts):
     other = [x for x in posts if x["slug"] != p["slug"] and x["pillar"] != p["pillar"]]
     related = (same + other)[:3]
     share_text = esc(f"{p['title']} {p['url']}")
-    body = f"""<div class="wrap">
-<header class="post-head"><div class="inner">
-<div class="crumbs"><a href="/">Home</a> › <a href="/topics/{slug}/">{p['pillar']}</a></div>
+    ph = photo_for(p)
+    figure = ""
+    if ph:
+        cap = f"<figcaption>{esc(ph[1])}{'. ' + ph[2] if ph[2] else ''}</figcaption>"
+        figure = f'<figure class="post-figure"><div class="ph">{img_tag(ph, "(max-width:1200px) 100vw, 1200px", eager=True, widths=(640, 960, 1400, 2000))}</div>{cap}</figure>'
+    verb = "Updated" if p["updated"] != p["date"] else "Published"
+    body = f"""<header class="post-head"><div class="wrap"><div class="inner">
+<a class="kicker" href="/topics/{slug}/">{p['pillar']}</a>
 <h1>{esc(p['title'])}</h1>
 <p class="dek">{esc(p['description'])}</p>
-<div class="byline"><span class="avatar">{AUTHOR_INITIALS}</span><span>By <strong>{AUTHOR}</strong> · {"Updated" if p['updated'] != p['date'] else "Published"} <time datetime="{p['updated']}">{fmt_date(p['updated'])}</time> · {p['read']} read</span></div>
-</div>
-<div class="post-cover">{cover_html(p, eager=True)}</div>
-</header>
-<div class="post-layout">
+<div class="byline"><span class="avatar">{AUTHOR_INITIALS}</span><span>By <strong>{AUTHOR}</strong> · {verb} <time datetime="{p['updated']}">{fmt_date(p['updated'])}</time> · {p['read']} read</span></div>
+</div></div></header>
+{figure}
+<div class="wrap"><div class="post-layout">
 <article class="post-main">
-<div class="answer"><b>Quick answer</b><p>{esc(p['answer'])}</p></div>
+<div class="answer"><b>In short</b><p>{esc(p['answer'])}</p></div>
 <details class="toc-mobile toc"><summary>In this guide</summary>{toc_list(p)}</details>
 <div class="prose">{insert_in_article_ads(p['html'])}</div>
-<section class="faq"><h2 id="faq">Frequently asked questions</h2>{faq_html}</section>
+<section class="faq"><h2 id="faq">Questions readers ask</h2>{faq_html}</section>
 {cta_box()}
 <div class="share">Share this guide:
 <a href="https://wa.me/?text={share_text}" rel="noopener">WhatsApp</a>
 <a href="https://www.facebook.com/sharer/sharer.php?u={esc(p['url'])}" rel="noopener">Facebook</a>
 <button type="button" data-copy>Copy link</button></div>
-<div class="author-box"><span class="avatar">{AUTHOR_INITIALS}</span><div><strong>{AUTHOR}</strong>{AUTHOR_ROLE}. Writes the journal with input from the service technicians who look after pools across Cape Town every week. <a href="/about/">About the journal</a></div></div>
+<div class="author-box"><span class="avatar">{AUTHOR_INITIALS}</span><div><strong>{AUTHOR}</strong>{AUTHOR_ROLE}. Writes the journal with the service technicians who look after pools across Cape Town every week. <a href="/about/">About the journal</a></div></div>
 {ad("after_article")}
 </article>
 <aside class="sidebar" aria-label="Sidebar">
 <div class="side-box toc"><h4>In this guide</h4>{toc_list(p)}</div>
 {ad("sidebar")}
-<div class="side-cta"><strong>Pool giving you trouble?</strong><p>Send a photo on WhatsApp and we'll tell you what's wrong.</p><a class="btn" href="{WHATSAPP}">WhatsApp us</a></div>
+<div class="side-cta"><strong>Pool giving you trouble?</strong><p>Send us a photo on WhatsApp and we'll tell you what's wrong.</p><a class="btn" href="{WHATSAPP}">WhatsApp us</a></div>
 </aside>
 </div></div>
-<section class="related"><div class="wrap"><div class="section-head"><h2 class="title" style="font:600 26px var(--serif);margin:0">Keep reading</h2></div><div class="grid">{''.join(card(r) for r in related)}</div></div></section>"""
+<section class="related"><div class="wrap"><div class="section-head"><h2>Keep reading</h2><p>More from the journal</p></div><div class="grid">{''.join(card(r) for r in related)}</div></div></section>"""
     ld = [
         {"@context": "https://schema.org", "@type": "BlogPosting", "headline": p["title"], "description": p["description"],
-         "image": SITE_URL + (f"/img/{p['image']}" if p.get("image") else f"/covers/{p['slug']}.svg"),
+         "image": cover_url(p),
          "datePublished": p["date"], "dateModified": p["updated"], "mainEntityOfPage": p["url"], "inLanguage": "en-ZA",
          "articleSection": p["pillar"], "abstract": p["answer"], "wordCount": p["words"],
          "author": {"@type": "Person", "name": AUTHOR, "jobTitle": AUTHOR_ROLE, "url": SITE_URL + "/about/", "worksFor": {"@id": BIZ_URL + "/#business"}},
@@ -369,40 +439,59 @@ def build_post(p, posts):
         org_ld(),
     ]
     return page(f"{p['title']} | {SITE_NAME}", p["description"], f"/{p['slug']}/", body, ld, "article", active=p["pillar"],
-                progress=True, og_image=(f"/img/{p['image']}" if p.get("image") else None))
+                progress=True, og_image=cover_url(p))
 
 
 def guide_count(posts, name):
     n = sum(1 for p in posts if p["pillar"] == name)
-    return "New guides coming soon" if n == 0 else f"{n} guide{'s' if n != 1 else ''}"
+    return "Guides coming soon" if n == 0 else f"{n} guide{'s' if n != 1 else ''}"
+
+
+def pillar_photo(name, posts):
+    slug = PILLAR_PHOTO.get(name)
+    rec = PHOTOS["posts"].get(slug)
+    return unsplash(rec) if rec else site_photo("capetown")
 
 
 def build_index(posts):
-    feat, rest = posts[0], posts[1:]
-    fslug = PILLARS[feat["pillar"]][0]
-    pillars = "".join(
-        f'<a class="pillar" href="/topics/{s}/" style="--c:{c}"><strong>{n}</strong><span>{esc(b)}</span><em>{guide_count(posts, n)}</em></a>'
+    feat = posts[0]
+    hero_ph = photo_for(feat) or site_photo("home")
+    lead, rest = (posts[1], posts[2:]) if len(posts) > 1 else (posts[0], [])
+    tiles = "".join(
+        f'<a class="tile" href="/topics/{s}/">{img_tag(pillar_photo(n, posts), "(max-width:640px) 100vw, 240px", widths=(400, 600, 800, 1000))}'
+        f'<div class="t"><strong>{n}</strong><span>{esc(b)}</span><em>{guide_count(posts, n)}</em></div></a>'
         for n, (s, c, b) in PILLARS.items())
-    body = f"""<section class="hero"><div class="wrap hero-grid">
-<div>
-<p class="eyebrow">Cape Town's pool guide</p>
-<h1>Clear water, all summer long.</h1>
-<p class="lead">Straight answers on pool care, pool building and pool days, from the people who service Cape Town pools every week.</p>
-<form class="search" role="search" action="/" onsubmit="return false"><label for="q" class="skip">Search guides</label><input id="q" type="search" placeholder="Search: green pool, pH, pump…" autocomplete="off"><button class="btn" type="submit">Search</button></form>
-</div>
-<a class="featured" href="/{feat['slug']}/"><div class="cover">{cover_html(feat, eager=True)}</div><div class="body"><span class="tag {fslug}">Featured · {feat['pillar']}</span><h2>{esc(feat['title'])}</h2><p>{esc(feat['description'])}</p></div></a>
-</div><svg class="wave" viewBox="0 0 1440 56" preserveAspectRatio="none" aria-hidden="true"><path d="M0 28c120 18 240 18 360 0s240-18 360 0 240 18 360 0 240-18 360 0v28H0z" fill="#fbf8f2"/></svg></section>
+    chips = "".join(f'<a class="chip" href="/topics/{s}/">{n}</a>' for n, (s, _, _) in PILLARS.items())
+    se = SEASONS.get(TODAY.month)
+    season = ""
+    live_slugs = {p["slug"] for p in posts}
+    if se and se[3] in live_slugs:
+        sp = site_photo("blouberg")
+        season = f"""<section class="season"><div class="bg">{img_tag(sp, "100vw", widths=(800, 1200, 1800, 2400))}</div><div class="wrap">
+<span class="kicker">{se[0]}</span><h2>{se[1]}</h2><p>{se[2]}</p><a class="btn light" href="/{se[3]}/">Read the guide</a></div>
+<div class="credit">{sp[2]}</div></section>"""
+    body = f"""<section class="hero"><div class="bg">{img_tag(hero_ph, "100vw", eager=True, widths=(800, 1200, 1800, 2400))}</div><div class="wrap">
+<span class="kicker">Featured · {feat['pillar']}</span>
+<h1>{esc(feat['title'])}</h1>
+<p class="dek">{esc(feat['description'])}</p>
+<div class="actions"><a class="btn light" href="/{feat['slug']}/">Read the guide</a><a class="btn ghost" href="{WHATSAPP}">Ask us on WhatsApp</a></div>
+</div><div class="credit">{hero_ph[2]}</div></section>
+<div class="searchband"><div class="wrap">
+<form class="search" role="search" action="/" onsubmit="return false"><label for="q" class="skip">Search guides</label><input id="q" type="search" placeholder="Search {len(posts)} guides: green pool, pH, pump…" autocomplete="off"><button class="btn" type="submit">Search</button></form>
+<div class="chips">{chips}</div></div></div>
 <section class="section" id="latest"><div class="wrap">
-<div class="section-head"><div><h2 class="title">Latest guides</h2><p class="sub">New posts every week, timed to what's happening in Cape Town pools right now.</p></div></div>
-<div class="grid">{''.join(card(p) for p in posts)}</div>
+<div class="section-head"><h2>The latest</h2><p>Straight answers from Cape Town's pool technicians</p></div>
+{lead_story(lead) if rest or lead is not feat else ''}
+<div class="grid">{''.join(card(p) for p in rest)}</div>
 <p class="empty">No guides match that yet. <a href="/contact/">Ask us the question</a> and we'll write it.</p>
 </div></section>
-<div class="wrap">{ad("home_feed")}</div>
-<section class="section" id="topics" style="padding-top:20px"><div class="wrap">
-<div class="section-head"><div><h2 class="title">Browse by topic</h2><p class="sub">Five areas, one goal: a pool you actually enjoy.</p></div></div>
-<div class="pillars">{pillars}</div></div></section>
+{season}
+<div class="wrap" style="padding-top:40px">{ad("home_feed")}</div>
+<section class="section" id="topics"><div class="wrap">
+<div class="section-head"><h2>Browse by topic</h2><p>Five areas, one goal: a pool you enjoy</p></div>
+<div class="tiles">{tiles}</div></div></section>
 <section class="section" style="padding-top:0"><div class="wrap"><div class="ask">
-<div><h2>Got a pool question?</h2><p>Send it in. We answer every one, and the best questions become guides on the journal.</p></div>
+<div><span class="kicker">Reader questions</span><h2>Got a pool question?</h2><p>Send it in. We answer every one, and the best questions become guides on the journal.</p></div>
 {question_form("home")}
 </div></div></section>"""
     ld = [{"@context": "https://schema.org", "@type": "WebSite", "name": SITE_NAME, "url": SITE_URL + "/", "description": TAGLINE,
@@ -410,7 +499,7 @@ def build_index(posts):
           {"@context": "https://schema.org", "@type": "Blog", "name": SITE_NAME, "url": SITE_URL + "/",
            "blogPost": [{"@type": "BlogPosting", "headline": p["title"], "url": p["url"], "datePublished": p["date"]} for p in posts]},
           org_ld()]
-    return page(f"{SITE_NAME}: Pool care, building and fun in Cape Town", TAGLINE + ".", "/", body, ld)
+    return page(f"{SITE_NAME}: Pool care, building and fun in Cape Town", TAGLINE + ".", "/", body, ld, og_image=cover_url(feat))
 
 
 def question_form(src):
@@ -426,10 +515,11 @@ def question_form(src):
 def build_topic(name, posts):
     slug, col, blurb = PILLARS[name]
     items = [p for p in posts if p["pillar"] == name]
-    grid = "".join(card(p) for p in items) or '<p class="sub">New guides on this topic are on the way.</p>'
-    body = f"""<section class="topic-hero" style="background:linear-gradient(135deg,var(--deep) 40%,{col} 160%)"><div class="wrap">
+    grid = "".join(card(p) for p in items) or '<p class="empty" style="display:block">New guides on this topic are on the way.</p>'
+    ph = pillar_photo(name, posts)
+    body = f"""<section class="topic-hero"><div class="bg">{img_tag(ph, "100vw", eager=True, widths=(800, 1200, 1800, 2400))}</div><div class="wrap">
 <div class="crumbs"><a href="/">Home</a> › Topics</div><h1>{name}</h1><p>{esc(blurb)}</p></div></section>
-<section class="section"><div class="wrap"><div class="grid">{grid}</div>{ad("topic_feed")}</div></section>"""
+<section class="section"><div class="wrap"><div class="section-head"><h2>{guide_count(posts, name)}</h2><p>Newest first</p></div><div class="grid">{grid}</div>{ad("topic_feed")}</div></section>"""
     ld = [{"@context": "https://schema.org", "@type": "CollectionPage", "name": f"{name} guides", "url": f"{SITE_URL}/topics/{slug}/",
            "description": blurb, "hasPart": [{"@type": "BlogPosting", "headline": p["title"], "url": p["url"]} for p in items]},
           {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
@@ -438,9 +528,13 @@ def build_topic(name, posts):
     return page(f"{name}: Cape Town pool guides | {SITE_NAME}", blurb, f"/topics/{slug}/", body, ld, active=name)
 
 
-def static_page(path, title, desc, inner, ld_type="WebPage", updated=None):
+def static_page(path, title, desc, inner, ld_type="WebPage", updated=None, photo=None):
     up = f'<p class="updated">Last updated {fmt_date(updated)}</p>' if updated else ""
-    body = f'<div class="wrap"><div class="page"><div class="crumbs"><a href="/">Home</a></div><h1>{title}</h1>{up}<div class="prose">{inner}</div></div></div>'
+    fig = ""
+    if photo:
+        ph = site_photo(photo)
+        fig = f'<figure><div class="page-figure">{img_tag(ph, "720px", eager=True)}</div><figcaption class="caption">{ph[2]}</figcaption></figure>'
+    body = f'<div class="wrap"><div class="page"><div class="crumbs"><a href="/">Home</a></div><h1>{title}</h1>{up}{fig}<div class="prose">{inner}</div></div></div>'
     ld = [{"@context": "https://schema.org", "@type": ld_type, "name": title, "url": SITE_URL + path}]
     return page(f"{title} | {SITE_NAME}", desc, path, body, ld, active="About" if path == "/about/" else "")
 
@@ -564,7 +658,7 @@ def main():
     for name in PILLARS:
         w(f"topics/{PILLARS[name][0]}/index.html", build_topic(name, posts))
     latest = posts[0]["updated"]
-    w("about/index.html", static_page("/about/", f"About {SITE_NAME}", f"Who writes {SITE_NAME} and how we keep our pool advice accurate.", about_html(), "AboutPage"))
+    w("about/index.html", static_page("/about/", f"About {SITE_NAME}", f"Who writes {SITE_NAME} and how we keep our pool advice accurate.", about_html(), "AboutPage", photo="capetown"))
     w("contact/index.html", static_page("/contact/", "Contact &amp; questions", "Ask a pool question or get in touch with the Cape Pool Journal team.", contact_html(), "ContactPage"))
     w("privacy/index.html", static_page("/privacy/", "Privacy policy", f"How {SITE_NAME} collects and uses information, including cookies and advertising.", privacy_html(), updated="2026-10-03"))
     w("terms/index.html", static_page("/terms/", "Terms &amp; disclaimer", f"Terms of use and disclaimer for {SITE_NAME}.", terms_html(), updated="2026-10-03"))
