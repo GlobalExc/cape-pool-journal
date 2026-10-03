@@ -48,8 +48,8 @@ BING_VERIFICATION = ""                               # optional Bing Webmaster T
 # ----------------------------------------------------------------- LIVE CHAT (tawk.to)
 # tawk.to → Administration → Chat Widget → copy the two IDs from the embed link
 # https://embed.tawk.to/<PROPERTY_ID>/<WIDGET_ID>
-TAWK_PROPERTY_ID = ""
-TAWK_WIDGET_ID = "default"
+TAWK_PROPERTY_ID = "6ac14580ae5bb434c47f1f20"
+TAWK_WIDGET_ID = "1k41ff0f5"
 
 # ----------------------------------------------------------------- CMS (/admin)
 GITHUB_REPO = "GlobalExc/cape-pool-journal"   # set when the GitHub repo exists
