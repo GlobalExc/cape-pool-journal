@@ -1,20 +1,36 @@
 ---
 title: "Pool Safety for Kids: Fences, Nets and Rules That Work"
-description: "How to make a home pool safer for children: layers of protection, what to look for in pool fences, nets and covers, and the house rules that matter most."
-date: '2026-10-23'
+date: 2026-10-04
 pillar: Building
-answer: "The safest home pool has layers of protection: a fence that fully separates the pool from the house and garden, with a self-closing, self-latching gate; a properly fitted safety net or cover; an adult actively watching whenever children are near the water; and children taught to swim and to stay out unless an adult says yes. No single layer is enough on its own."
-image: ''
-image_alt: ''
+description: "How to make a home pool safer for children: layers of protection,
+  what to look for in pool fences, nets and covers, and the house rules that
+  matter most."
+answer: "The safest home pool has layers of protection: a fence that fully
+  separates the pool from the house and garden, with a self-closing,
+  self-latching gate; a properly fitted safety net or cover; an adult actively
+  watching whenever children are near the water; and children taught to swim and
+  to stay out unless an adult says yes. No single layer is enough on its own."
+image: ""
+image_alt: ""
 faqs:
-- q: Is a pool net or a pool fence better?
-  a: A fence is the stronger first layer because it works without anyone remembering to put it back. A net or rigid cover adds a second layer. Many families use both.
-- q: What height should a pool fence be?
-  a: South Africa's national standard for pool safety barriers, SANS 10134, is the reference most installers and municipalities use. It calls for barriers at least 1.2 metres high that a small child can't climb or squeeze through. Check the current requirements with your installer or municipality before you build.
-- q: At what age can children swim without supervision?
-  a: There's no safe age for children to swim with no adult watching. Even strong young swimmers can get into trouble. An adult should always be actively watching.
-- q: Do inflatable armbands keep children safe?
-  a: No. Armbands and pool toys are not safety devices and can slip off or deflate. Use a properly fitted life jacket for weak swimmers, and stay within arm's reach of toddlers.
+  - q: Is a pool net or a pool fence better?
+    a: A fence is the stronger first layer because it works without anyone
+      remembering to put it back. A net or rigid cover adds a second layer. Many
+      families use both.
+  - q: What height should a pool fence be?
+    a: South Africa's national standard for pool safety barriers, SANS 10134, is the
+      reference most installers and municipalities use. It calls for barriers at
+      least 1.2 metres high that a small child can't climb or squeeze through.
+      Check the current requirements with your installer or municipality before
+      you build.
+  - q: At what age can children swim without supervision?
+    a: There's no safe age for children to swim with no adult watching. Even strong
+      young swimmers can get into trouble. An adult should always be actively
+      watching.
+  - q: Do inflatable armbands keep children safe?
+    a: No. Armbands and pool toys are not safety devices and can slip off or
+      deflate. Use a properly fitted life jacket for weak swimmers, and stay
+      within arm's reach of toddlers.
 ---
 ## Why layers matter
 
